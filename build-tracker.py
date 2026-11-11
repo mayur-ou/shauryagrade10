@@ -2,7 +2,7 @@
 import json, os, sys
 
 OUT = sys.argv[1]
-UPDATED = "2026-11-08"
+UPDATED = "2026-11-11"
 
 def ch(num, title, sections=None, status="revised", score=None, mx=None, tested_in="", note="", unit=None):
     d = {"num": str(num), "title": title, "sections": sections or [], "status": status,
@@ -371,6 +371,57 @@ PRIORITIES[:] = [
  ("french","French: confirm the lineup, then the first graded paper."),
 ]
 
+# ================= 9–10 Nov: new graded board papers =================
+PID_OVERRIDE = {}
+
+# Chemistry 0620/22 Oct/Nov 2025 Paper 2 MCQ, graded 9 Nov: 37/40 confirmed (range 37–39)
+C_ = SUB["chemistry"]
+C_["headline"] = {"score":37,"max":40,"pct":92,"band":"A*","label":"Board 0620/22 Oct/Nov 2025 · Paper 2 MCQ · 9 Nov"}
+C_["statusText"] = "Paper 6 not started · gas laws slip"
+C_["summary"] = "All 19 chapters revised, 18 tested. Latest board MCQ 37/40 (92%, A*), up from 32/40. Paper 4 at A (85%). Paper 6 not started."
+C_["papersUsed"].insert(-1, "Board 0620/22 Oct/Nov 2025 · Paper 2 · 37/40 (range 37–39) · 9 Nov")
+chap("chemistry",1)["note"] += " 9 Nov MCQ: lost Q1 gas volume (thought higher temperature lowers volume); Q3 diffusion unresolved."
+chap("chemistry",16)["note"] += " 9 Nov MCQ: organic 5/6 confirmed; Q32 double-marked (A and D)."
+C_["fixes"].insert(0, "Gas volume (Ch 1): hotter → bigger volume; lower pressure → bigger volume. Say it before choosing.")
+C_["fixes"].append("MCQ: one clear mark per question. Two marks score zero.")
+C_["gaps"].insert(1, "Confirm 0620/22 O/N 2025 Q32 (A or D?) with Shaurya and check the Q3 official key; score is 37–39/40.")
+
+PAPERS.append(("2026-11-09","chemistry","Board 0620/22 Oct/Nov 2025 · Paper 2 MCQ","Full paper",37,40,"A*",
+  "Confirmed 37/40; range 37–39. Lost Q1 gas volume. Q3 key unverified; Q32 double-marked (scores zero unless resolved)."))
+
+# French 0520/21 Oct/Nov 2024 Paper 2 Reading, graded 10 Nov: Q1–5 32/34 (Q6 pending)
+F_ = SUB["french"]
+F_.update({
+ "headline":{"score":32,"max":34,"pct":94,"band":"A","label":"Board 0520/21 Nov 2024 Reading, Q1–5 · 10 Nov (Q6 pending)"},
+ "status":"ok","statusText":"Reading at A* pace · Writing paper next",
+ "summary":"First board paper: Reading Q1–5 32/34 (94%). A already secured on the Nov 2024 line (29/45). Q6 still to mark.",
+ "revisions":"Board past paper practice started 10 Nov (Paper 2 Reading).",
+ "papersUsed":["Board 0520/21 Oct/Nov 2024 · Paper 2 Reading · Q1–5 32/34 · 10 Nov (Q6 pending)"],
+ "fixes":["Circle every condition/exception word before answering: sauf, si/s'il, mais, d'habitude, ne…jamais, seulement.",
+          "Matching questions: tick each person's conditions (day, time, budget, group size, food) against the ad; all must pass.",
+          "Print capital letters clearly (his H reads like M).",
+          "Spell key nouns fully: vétérinaire.",
+          "Answer with the verb when the question asks what someone did: il a fabriqué des jouets."],
+ "gaps":["Send Q6 (pages 10–12) to finish the 0520/21 score.",
+         "Sit a Paper 4 Writing past paper next: the real test for the French vs ICT decision.",
+         "Confirm French stays in the lineup alongside ICT."],
+})
+PAPERS.append(("2026-11-10","french","Board 0520/21 Oct/Nov 2024 · Paper 2 Reading","Q1–5 (Q6 not yet photographed)",32,34,"A",
+  "Partial: Q6 (11 marks) pending. A secured (Cambridge A line 29/45); A* pace, needs 9/11 on Q6. Lost 3(c) and 5(e): skipped condition/exception words (s'il pleut, sauf les lundis)."))
+PID_OVERRIDE[len(PAPERS)] = "2026-11-10-french-01"   # id already used on the live dashboard
+
+PRIORITIES[:] = [
+ ("physics","Physics Ch 21 and 22: revised but never tested. Take a test."),
+ ("chemistry","Chemistry Paper 6 practical: start, one paper a week."),
+ ("chemistry","Chemistry: retest Ch 7, 13, 8, 14 (55–64%) and Ch 16 organic on board-style questions."),
+ ("maths","Maths: drill similarity (k², k³) and negative enlargements."),
+ ("chemistry","Chemistry: resolve Q32 and Q3 on the 9 Nov MCQ; take the Ch 19 chapter test."),
+ ("french","French: send Q6 to finish the Reading paper, then sit Paper 4 Writing."),
+ ("business","Business RT2 (Ch 26–29): sit it. Record Ch 1–16."),
+ ("ict","ICT practical Ch 11–21: start."),
+ ("english","English Q3: retry at 280 words with the 6-box check."),
+]
+
 os.makedirs(OUT, exist_ok=True)
 for s in SUBJECTS:
     json.dump(s, open(f"{OUT}/subject-{s['key']}.json","w"), ensure_ascii=False)
@@ -380,7 +431,7 @@ for i,row in enumerate(PAPERS,1):
     doc = {"date":d,"subject":sub,"test":test,"chapters":chs,"score":sc,"max":mx,
            "pct": round(sc*100/mx) if sc is not None else None,"band":band,"note":note}
     if len(row) > 8 and row[8]: doc["dateLabel"] = row[8]
-    pid = f"{d}-{sub}-{i:02d}"
+    pid = PID_OVERRIDE.get(i, f"{d}-{sub}-{i:02d}")
     papers.append((pid,doc))
     json.dump(doc, open(f"{OUT}/paper-{pid}.json","w"), ensure_ascii=False)
 home = {"updated":UPDATED,"candidate":"Shaurya Gala","centre":"JBCN International School, Parel",
